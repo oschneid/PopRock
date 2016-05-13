@@ -11,7 +11,7 @@ Vocal prototyping for physical user interfaces.
 ###Running React Voodle:
 
 * Open a terminal window and type: `npm run dev`.
-* While this process is running, open a *new* terminal window in the React Voodle directoryand type: `node server.js`.
+* While this process is running, open a *new* terminal window in the React Voodle directory and type: `node server.js`.
 
 --
 ##Processing Voodle

@@ -1,0 +1,58 @@
+body {
+    margin:0;
+    font-family:"Helvetica Nueue", sans-serif;
+}
+
+.myClass {
+    background-color: #FF0000;
+    height: 2vh;
+    width: 20vw;
+
+}
+
+#settings {
+	
+	font-family: "Helvetica Nueue", sans-serif;
+	color: #DDD;
+	float:left;
+	position: absolute;
+
+    left: 15px; 
+    top: 5px;
+	
+	
+}
+
+#readOut{
+	background-color: #222;
+	display: inline-block;
+	width: 150px;
+	padding: 20px;
+    left: 15px; 
+    top: 5px;
+    vertical-align: top;
+}
+
+#gain {
+	background-color: #222;
+	color: #888;
+	display: inline-block;
+	margin-left: 50px;
+	padding: 20px;
+    left: 15px; 
+    top: 5px;
+    vertical-align: top;
+}
+
+#canvas {
+	background-color: #333;
+	height:100vh;
+	width: 100vw;
+	
+}
+
+#circleContainer {
+	height: 100vh;
+	width: 100vw;
+
+}

@@ -2,6 +2,9 @@
 
 import React from 'react';
 
+
+
+
 var Settings = React.createClass({
 	render: function(){
 		return (
@@ -18,6 +21,9 @@ var Settings = React.createClass({
 					<b>Pitch gain: </b>{this.props.pitch_gain}
 					<p />
 					<b>Scale factor:</b>{this.props.scaleFactor}
+					<p />
+					<input type="range" name="amountRange" min="0" max="20" oninput="this.form.amountInput.value=this.value" />
+    				<input type="number" name="amountInput" min="0" max="20" oninput="this.form.amountRange.value=this.value" />
 				</div>
 			</div>
 			)

@@ -9,7 +9,12 @@ body {
     width: 20vw;
 
 }
+.slider {
+	width:100px;
+	height:10px;
 
+
+}
 #settings {
 	
 	font-family: "Helvetica Nueue", sans-serif;

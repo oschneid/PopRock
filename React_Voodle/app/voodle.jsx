@@ -16,20 +16,17 @@ var Settings = React.createClass({
 
 				</div><p />
 				<div id = "edit">
-					<b>Amplitude gain: </b>{this.props.amp_gain} <Slider inputValue={this.props.amp_gain}
-							minValue={-12}
-							maxValue={12}
-							name="amp_dB"/>
-					<p />
-					<b>Pitch gain: </b>{this.props.pitch_gain} <Slider inputValue={this.props.pitch_gain}
-							minValue={-12}
-							maxValue={12}
-							name="pitch_dB"/>
+					{stringify(this.props.amp_gain)} <b>pitch bias</b> <Slider inputValue={0.5}
+							minValue={0}
+							maxValue={1}
+							name="ap_weight"
+							stepValue={0.05}/><b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
 					<p />
 					<b>Scale factor:</b>{this.props.scaleFactor} <Slider inputValue={this.props.scaleFactor}
 							minValue={0}
-							maxValue={12}
-							name="scale"/>
+							maxValue={6}
+							name="scale"
+							stepValue={1} />
 					<p />
 					
 				</div>
@@ -61,7 +58,7 @@ var Slider = React.createClass({
 	      min={this.props.minValue} max={this.props.maxValue} 
 	      value={this.state.value} 
 	      onChange={this.handleChange}
-	      step="1"/>
+	      step={this.props.stepValue}/>
 
 	  );}
 })
@@ -92,6 +89,19 @@ var Voodle = React.createClass({
 
 	});
 
-
+function stringify(n){
+	if (n==0){
+		return "0.00"
+	}
+	else if (n==1){
+		return"1.00"
+	}
+	else if (n.toString().length < 4){
+			return n.toString()+"0"
+		}
+	else {
+		return n.toString().substring(0,4)
+	}
+}
 
 module.exports = Voodle;

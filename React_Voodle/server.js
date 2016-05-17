@@ -86,6 +86,8 @@ function processAudio( inputBuffer ) {
 			if (ampGain>1) {
 				ampGain = 1;
 			};
+		
+		
 
 		var ampBroadcast = broadcastAmp(ampGain);
 		
@@ -112,11 +114,11 @@ function processAudio( inputBuffer ) {
 		//end of pitch analysis///////////////////////////////////////////
 		
 		//mixes amplitude and frequency, while scaling it up by scaleFactor.
-		var ampPitchMix = (0.2*ampGain+0.8*pitchGain)*scaleFactor;
+		var ampPitchMix = (gain_for_amp*ampRaw+gain_for_pitch*pitch)*scaleFactor;
 		
 		//smooths values
 		smoothOut = 0.80*smoothOut+0.20*ampPitchMix;
-
+		
 		//writes values to arduino
 		setArduino(smoothOut);
 
@@ -177,6 +179,12 @@ function broadcastScale(scale){
 io.on('connection', function (socket) {
 	console.log("connected to client!");
   	socket.on("updateParams", function (data) {
+
+  		if ('ap_weight' in data){
+  			gain_for_amp = data.ap_weight;
+  			gain_for_pitch = 1-gain_for_amp;
+  		}
+
   		if('amp_dB' in data){
   			gain_for_amp = data["amp_dB"];
   			console.log("\nnew amp gain: "+gain_for_amp);
@@ -210,6 +218,7 @@ board.on("ready", function() {
 });
 
 function setArduino(smoothOut) {
+
 	if (servoCreated){
 		//maps the audio input to the servo value range, and calculates the difference
 		//so that it moves upwards with increased amplitude.

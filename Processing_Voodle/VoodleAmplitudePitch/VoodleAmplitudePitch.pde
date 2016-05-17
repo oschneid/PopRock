@@ -78,7 +78,7 @@ void draw() {
         inverseBuffer[i] = log(sq(abs(fft.getBand(i)))); 
        }
       //get the inverse
-      ifft.forward(inverseBuffer);
+      //ifft.forward(inverseBuffer);
       ifft.inverse(inverseBuffer);
         
       //Identifies the peak band with a "lowpass filter" restricting us to 20 bands as to eliminate
@@ -126,11 +126,11 @@ void draw() {
       //arduinoValue += 5;
       //arduinoValue = 15;
       arduinoValue = int(map(poprockControl, 0, 1, 85, 15));
-      if (arduinoValue < 15)
+      if (arduinoValue < 10)
       {
-        arduinoValue = 15;
-      } else if (arduinoValue > 85) {
-        arduinoValue = 85;
+        arduinoValue = 10;
+      } else if (arduinoValue > 70) {
+        arduinoValue = 70;
       }
       //println(arduinoValue);
       arduino.servoWrite(pin,arduinoValue);

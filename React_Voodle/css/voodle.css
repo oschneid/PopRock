@@ -16,32 +16,26 @@ body {
 	color: #DDD;
 	float:left;
 	position: absolute;
-
-    left: 15px; 
-    top: 5px;
+    left: 5px; 
+    top: 25px;
+    opacity: 0.9;
 	
 	
 }
 
 #readOut{
 	background-color: #222;
-	display: inline-block;
 	width: 150px;
 	padding: 20px;
     left: 15px; 
     top: 5px;
-    vertical-align: top;
 }
 
-#gain {
+#edit {
 	background-color: #222;
-	color: #888;
-	display: inline-block;
-	margin-left: 50px;
+	color: #AAA;
 	padding: 20px;
-    left: 15px; 
     top: 5px;
-    vertical-align: top;
 }
 
 #canvas {

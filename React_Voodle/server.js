@@ -5,22 +5,20 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+
 var five = require('johnny-five');
 var smoothOut = 1;
-var gain_for_amp = 5; //TO-DO: make a function for gain
+var gain_for_amp = 5; 
 var gain_for_pitch = 2;
 var scaleFactor = 3;
 var board = new five.Board();
 var servoCreated = false;
 var servo;
-var servoMax = 80;
-var servoMin= 15;
+var servoMax = 85;
+var servoMin= 20;
 
 var pitch;
-// var detectPitchYIN = new pitchFinder.YIN({
-// 	sampleRate:40000,
-	
-// });
+
 var detectPitchAMDF = new pitchFinder.AMDF({
 	sampleRate:40000,
 	minFrequency:5,
@@ -45,11 +43,6 @@ app.use(express.static(__dirname + '/css'));
 //start of socket io 
 io.on('connection', function (socket) {
 	console.log("socket connection established!")
-  // socket.emit('news', { hello: 'world' });
- //  socket.on('fuck', function (data) {
- //   console.log("fuck you, " + data[0]);
- //   io.emit("no",data);
- // });
 });
 
 
@@ -96,8 +89,8 @@ function processAudio( inputBuffer ) {
 
 		var ampBroadcast = broadcastAmp(ampGain);
 		
-		console.log("inputBuffer: ",inputBuffer[0].length)
-		console.log("\n---------------------");
+		//console.log("inputBuffer: ",inputBuffer[0].length)
+		//console.log("\n---------------------");
 		//start of pitch analysis///////////////////////////////////////////
 		
 		pitch = detectPitchAMDF(inputBuffer[0]);
@@ -107,7 +100,7 @@ function processAudio( inputBuffer ) {
 		else{
 			pitch = mapValue(pitch, 0,1000,0,1)
 		}
-		console.log("AMDF: ",pitch);
+		// console.log("AMDF: ",pitch);
 
 		//applies gain to pitch
 		var pitchGain = gain_for_pitch*pitch
@@ -147,7 +140,7 @@ engine.addAudioCallback( processAudio );
 
 
 
-
+//////////////socket.io emit functions////////////////
 function broadcastAmp(a) {
 	
 	io.emit("amp",a);
@@ -178,6 +171,30 @@ function broadcastScale(scale){
 	io.emit("scale", scale);
 	return scale
 }
+
+//////////listens for updates from frontend/////////////////////////////
+
+io.on('connection', function (socket) {
+	console.log("connected to client!");
+  	socket.on("updateParams", function (data) {
+  		if('amp_dB' in data){
+  			gain_for_amp = data["amp_dB"];
+  			console.log("\nnew amp gain: "+gain_for_amp);
+  		}
+  		if('pitch_dB' in data){
+  			gain_for_pitch = data.pitch_dB;
+  			console.log("\nnew pitch gain: "+gain_for_pitch);
+  		}
+  		if('scale' in data){
+  			scaleFactor = data.scale;
+  			console.log("\nnew scale factor: "+scaleFactor)
+  		}
+  		
+    
+ 
+  });
+});
+
 //////////////////////////////////////////////////////////////
 //Arduino communication code/////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -188,9 +205,7 @@ board.on("ready", function() {
     pin: 10,
     startAt: 90
   });
-  board.repl.inject({
-  	servo: servo,
-  });
+
   servoCreated=true;
 });
 
@@ -208,9 +223,3 @@ function mapValue(value, minIn, maxIn, minOut, maxOut){
 }
 
 
-// function initValues(amp_db, pitch_db){
-// 	//TO-DO: add smoothing params...
-// 	var ampBroadcast = broadcastAmpGain(amp_db);
-// 	var pitchBroadcast = broadcastPitchGain(pitch_db);
-
-// }

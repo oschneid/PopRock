@@ -7,7 +7,7 @@ Vocal prototyping for physical user interfaces.
 
 * Install [React](https://facebook.github.io/react/) and [Node](https://nodejs.org/en/).
 * Navigate to the React Voodle directory in terminal and type: `npm install`
-* You will need to manuall install the node-module 'node-core-audio' because of reasons:
+* You will need to manually install the node-module 'node-core-audio' because of reasons:
 	* Clone the git repository `https://github.com/ZECTBynmo/node-core-audio.git` into your `node-modules` folder.
 	* Run `node-gyp rebuild`.
 	*NOTE: if you are running Python >3:

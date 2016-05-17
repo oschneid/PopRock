@@ -4,7 +4,7 @@ import React from 'react';
 
 import io from 'socket.io-client/socket.io';
 var socket = io.connect("http://localhost:3000");
-
+console.log("here is a helpful console log")
 var Settings = React.createClass({
 	render: function(){
 		return (
@@ -16,6 +16,8 @@ var Settings = React.createClass({
 
 				</div><p />
 				<div id = "edit">
+				<span id="title">Settings</span>
+				<p />
 					{stringify(this.props.amp_gain)} <b>pitch bias</b> <Slider inputValue={0.5}
 							minValue={0}
 							maxValue={1}
@@ -28,7 +30,13 @@ var Settings = React.createClass({
 							name="scale"
 							stepValue={1} />
 					<p />
-					
+					<b>Smoothing:</b>{stringify(this.props.smoothing)} <Slider inputValue={this.props.smoothing}
+							minValue={0}
+							maxValue={1}
+							name="smoothing"
+							stepValue={0.05} />
+					<p />
+					{console.log(this.props.smoothing)}
 				</div>
 			</div>
 			)
@@ -55,7 +63,8 @@ var Slider = React.createClass({
 	    <input 
 	      className="slider"
 	      type="range" 
-	      min={this.props.minValue} max={this.props.maxValue} 
+	      min={this.props.minValue} 
+	      max={this.props.maxValue} 
 	      value={this.state.value} 
 	      onChange={this.handleChange}
 	      step={this.props.stepValue}/>
@@ -82,7 +91,8 @@ var Voodle = React.createClass({
 						pitch={(this.props.pitch).toString().substring(0,5)} 
 						amp_gain={this.props.amp_gain}
 						pitch_gain={this.props.pitch_gain}
-						scaleFactor={this.props.scaleFactor}/>
+						scaleFactor={this.props.scaleFactor}
+						smoothing={this.props.smoothing} />
 			 
 				</div>)
 	}

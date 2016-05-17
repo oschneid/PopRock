@@ -11,25 +11,37 @@ var pitch_gain = 0;
 var mix = 0.0;
 var visualScaleFactor = 500;
 var scaleFactor =0;
+var smoothingFactor = 0.8;
 
 socket.on("amp",function(data){
 	    amp = data;
+
 	})
 
 socket.on("pitch", function(f0) {
 	pitch = f0;
+	
 })
 
 socket.on("amp_gain", function(db){
 	amp_gain = db;
+	
 })
 
 socket.on("pitch_gain", function(db){
 	pitch_gain = db;
+	
 })
 
 socket.on("mixdown", function(m){
 	mix = m;
+	
+	
+})
+
+socket.on("smoothing", function(v){
+	smoothingFactor=v;
+	console.log("setting smoothingFactor to: "+v)
 	
 })
 
@@ -50,6 +62,7 @@ function main() {
 								pitch_gain={pitch_gain} 
 								mix={mix}
 								scale={visualScaleFactor}
+								smoothing={smoothingFactor}
 								scaleFactor={scaleFactor} />
 								, document.getElementById('app'));
 	}

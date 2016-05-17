@@ -8,14 +8,15 @@ var io = require('socket.io')(server);
 
 var five = require('johnny-five');
 var smoothOut = 1;
-var gain_for_amp = 5; 
-var gain_for_pitch = 2;
+var gain_for_amp = 0.4; 
+var gain_for_pitch = 0.6;
 var scaleFactor = 3;
 var board = new five.Board();
 var servoCreated = false;
 var servo;
 var servoMax = 85;
 var servoMin= 20;
+var smoothValue=0.8;
 
 var pitch;
 
@@ -117,7 +118,8 @@ function processAudio( inputBuffer ) {
 		var ampPitchMix = (gain_for_amp*ampRaw+gain_for_pitch*pitch)*scaleFactor;
 		
 		//smooths values
-		smoothOut = 0.80*smoothOut+0.20*ampPitchMix;
+		//Note: smoothValue is a number between 0-1
+		smoothOut = smoothValue*smoothOut+(1-smoothValue)*ampPitchMix;
 		
 		//writes values to arduino
 		setArduino(smoothOut);
@@ -129,8 +131,9 @@ function processAudio( inputBuffer ) {
 		var ampdBBroadcast = broadcastAmpGain(gain_for_amp)
 		var pitchdBBroadcast = broadcastPitchGain(gain_for_pitch) 
 		var mixdownBroadcast = broadcastMix(smoothOut);
-		var scalingBroadcast = broadcastScale(scaleFactor);
 		var pitchBroadcast = broadcastPitch(pitchGain);
+		var smoothingBroadcast = broadcastSmoothing(smoothValue);
+		var scalingBroadcast = broadcastScale(scaleFactor);
 
 
 		}
@@ -171,9 +174,13 @@ function broadcastMix(mix){
 
 function broadcastScale(scale){
 	io.emit("scale", scale);
-	return scale
+	return scale;
 }
 
+function broadcastSmoothing(sv){
+	io.emit("smoothing",sv);
+	return sv;
+}
 //////////listens for updates from frontend/////////////////////////////
 
 io.on('connection', function (socket) {
@@ -196,6 +203,10 @@ io.on('connection', function (socket) {
   		if('scale' in data){
   			scaleFactor = data.scale;
   			console.log("\nnew scale factor: "+scaleFactor)
+  		}
+  		if('smoothing' in data){
+  			smoothValue = data.smoothing;
+  			console.log("\nnew smooth factor: "+smoothValue)
   		}
   		
     

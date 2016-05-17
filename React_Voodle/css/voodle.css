@@ -49,7 +49,10 @@ body {
 	width: 100vw;
 	
 }
-
+#title {
+	color:#AAA;
+	font-weight: bold;
+}
 #circleContainer {
 	height: 100vh;
 	width: 100vw;

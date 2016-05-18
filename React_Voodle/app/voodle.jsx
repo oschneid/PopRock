@@ -5,7 +5,26 @@ import React from 'react';
 import io from 'socket.io-client/socket.io';
 var socket = io.connect("http://localhost:3000");
 console.log("here is a helpful console log")
+
 var Settings = React.createClass({
+	getInitialState: function(){
+		return{recording:false}
+	},
+	startRecording: function(){
+		if (this.state.recording == false){
+			socket.emit("startRec")
+			console.log("startRecording in jsx called!")
+		}
+		this.setState({recording:true})
+	},
+	stopRecording: function(){
+		if (this.state.recording == true){
+			socket.emit("stopRec")
+			console.log("stop rec emit called!")
+		}
+		this.setState({recording:false})
+
+	},
 	render: function(){
 		return (
 			<div id ="settings">
@@ -36,7 +55,11 @@ var Settings = React.createClass({
 							name="smoothing"
 							stepValue={0.05} />
 					<p />
-					{console.log(this.props.smoothing)}
+					
+				</div>
+				<div id="record_save">
+					<button type="button" onClick={this.startRecording}><b>Record</b></button>
+					<button type="button" onClick={this.stopRecording}><b>Stop</b></button>
 				</div>
 			</div>
 			)

@@ -39,11 +39,11 @@ socket.on("mixdown", function(m){
 	
 })
 
-socket.on("smoothing", function(v){
-	smoothingFactor=v;
-	console.log("setting smoothingFactor to: "+v)
+// socket.on("smoothing", function(v){
+// 	smoothingFactor=v;
+// 	console.log("setting smoothingFactor to: "+v)
 	
-})
+// })
 
 socket.on("scale", function(scaling){
 	scaleFactor=scaling;

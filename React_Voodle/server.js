@@ -5,8 +5,11 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-
+var fs = require('fs');
 var five = require('johnny-five');
+
+
+
 var smoothOut = 1;
 var gain_for_amp = 0.4; 
 var gain_for_pitch = 0.6;
@@ -29,6 +32,11 @@ var detectPitchDW = new pitchFinder.DynamicWavelet();
 
 var last = new Date() //imposes a framerate with `var now`
 
+var recording = false
+var name;
+
+
+
 //set up server
 server.listen(3000);
 
@@ -42,15 +50,58 @@ app.use(express.static(__dirname + '/css'));
 
 
 //start of socket io 
-io.on('connection', function (socket) {
-	console.log("socket connection established!")
-});
+// io.on('connection', function (socket) {
+// 	console.log("socket connection established!")
+// });
 
 
 
+function writeToAudioBufferFile(name, buffer) {
+	var out = ''
+	buffer.forEach(function(f){
+		out = out +'0,' + f + '\n'
+	})
+	fs.appendFile("./recordings/"+name+"_recording.csv", out, function(err){
+		if (err){
+			return console.log(err);
+		}
+	})
 
+}
 
+function handleRecording(buffer){
+	if (recording ==  true){
+		writeToAudioBufferFile(name, buffer)
 
+	}
+}
+
+function startRecording(){
+	console.log("start rec. has been called!")
+	recording = true;
+	var n = new Date()
+	name = n.getTime();
+}
+
+function stopRecording(){
+	recording = false;
+	writeParams();
+}
+
+function writeParams(){
+	var params = {	smoothing:smoothValue, 
+					pitchBias:gain_for_pitch,
+					scaling:scaleFactor,
+					servo_max:servoMax,
+					servo_min:servoMin}
+
+	fs.appendFile("./recordings/"+name+"_parameters.json", JSON.stringify(params), function(err){
+	if (err){
+		return console.log(err);
+	}
+	console.log("wrote params file!")
+	})
+}
 
 ///////////////////////////////////////////////////////////////
 //start of audio analysis//////////////////////////////////////
@@ -79,6 +130,7 @@ engine.setOptions({
 
 function processAudio( inputBuffer ) {
 	var now = new Date()
+	handleRecording(inputBuffer[0])
 	//vars `now` and `last` ensures it runs at 30fps
 	if ((now-last)>34){	
 
@@ -89,7 +141,7 @@ function processAudio( inputBuffer ) {
 			};
 		
 		
-
+		
 		var ampBroadcast = broadcastAmp(ampGain);
 		
 		//console.log("inputBuffer: ",inputBuffer[0].length)
@@ -132,7 +184,7 @@ function processAudio( inputBuffer ) {
 		var pitchdBBroadcast = broadcastPitchGain(gain_for_pitch) 
 		var mixdownBroadcast = broadcastMix(smoothOut);
 		var pitchBroadcast = broadcastPitch(pitchGain);
-		var smoothingBroadcast = broadcastSmoothing(smoothValue);
+		//var smoothingBroadcast = broadcastSmoothing(smoothValue);
 		var scalingBroadcast = broadcastScale(scaleFactor);
 
 
@@ -177,10 +229,10 @@ function broadcastScale(scale){
 	return scale;
 }
 
-function broadcastSmoothing(sv){
-	io.emit("smoothing",sv);
-	return sv;
-}
+// function broadcastSmoothing(sv){
+// 	io.emit("smoothing",sv);
+// 	return sv;
+// }
 //////////listens for updates from frontend/////////////////////////////
 
 io.on('connection', function (socket) {
@@ -212,6 +264,12 @@ io.on('connection', function (socket) {
     
  
   });
+  	socket.on("startRec",function(){
+  		startRecording()
+  	})
+  	socket.on("stopRec", function(){
+  		stopRecording()
+  	})
 });
 
 //////////////////////////////////////////////////////////////

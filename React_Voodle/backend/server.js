@@ -102,8 +102,6 @@ function main() {
 				console.log("\nnew min servo range:"+servoMin)
 				servoMin = data.servoMin;
 			}
-	  		
-	    
 	 
 	  });
 	  	socket.on("startRec",function(){

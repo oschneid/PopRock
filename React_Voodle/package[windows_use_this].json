@@ -2,7 +2,8 @@
   "scripts": {
     "build": "webpack",
     "dev": "webpack-dev-server --devtool eval --progress --colors --hot --content-base build",
-    "deploy": "set NODE_ENV=production && webpack -p --config webpack.production.config.js"
+    "deploy": "set NODE_ENV=production && webpack -p --config webpack.production.config.js",
+    "start": "node backend/server.js"
   },
   "dependencies": {
     "exports-loader": "^0.6.2",

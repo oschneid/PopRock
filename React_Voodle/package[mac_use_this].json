@@ -2,23 +2,21 @@
   "scripts": {
     "build": "webpack",
     "dev": "webpack-dev-server --devtool eval --progress --colors --hot --content-base build",
-    "deploy": "set NODE_ENV=production && webpack -p --config webpack.production.config.js"
+    "deploy": "NODE_ENV=production webpack -p --config webpack.production.config.js"
   },
   "dependencies": {
     "exports-loader": "^0.6.2",
     "express": "^4.13.4",
     "fft": "^0.2.1",
     "firebase": "^2.4.1",
-    "fs": "0.0.2",
     "imports-loader": "^0.6.5",
     "johnny-five": "^0.9.49",
     "json-loader": "^0.5.4",
     "pitchfinder": "^2.0.3",
     "react": "^0.13.3",
-    "react-canvas": "^1.1.0",
-    "reflux": "^0.2.13",
     "script-loader": "^0.6.1",
     "socket.io": "^1.4.6",
+    "socket.io-client": "^1.4.6",
     "webpack-dev-server": "^1.14.1"
   },
   "devDependencies": {

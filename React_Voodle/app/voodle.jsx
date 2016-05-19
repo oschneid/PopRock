@@ -1,12 +1,8 @@
-
-
 import React from 'react';
-
 import io from 'socket.io-client/socket.io';
+
 var socket = io.connect("http://localhost:3000");
 console.log("here is a helpful console log")
-
-
 
 var Settings = React.createClass({
 	onChildChange: function(keyname){
@@ -47,17 +43,22 @@ var Settings = React.createClass({
 				<div id = "edit">
 				<span id="title">Settings</span>
 				<p />
-					{stringify(this.props.amp_gain)} <b>pitch bias</b> <Slider inputValue={0.5}
+					{stringify(this.props.amp_gain)} <b>pitch bias</b> 
+						<Slider inputValue={0.5}
 							minValue={0}
 							maxValue={1}
 							name="ap_weight"
-							stepValue={0.05}/><b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
+							stepValue={0.05}
+							callback={this.onChildChange}/>
+						<b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
 					<p />
-					<b>Scale factor:</b>{this.props.scaleFactor} <Slider inputValue={this.props.scaleFactor}
+					<b>Scale factor:</b>{this.props.scaleFactor} 
+						<Slider inputValue={this.props.scaleFactor}
 							minValue={0}
 							maxValue={6}
 							name="scale"
-							stepValue={1} />
+							stepValue={1}
+							callback={this.onChildChange} />
 					<p />
 					<b>Smoothing:</b>{stringify(this.state.smoothing)} 
 					<Slider inputValue={this.state.smoothing}
@@ -85,14 +86,16 @@ var Settings = React.createClass({
 							minValue={0}
 							maxValue={360}
 							name="servoMax"
-							stepValue={1} />
+							stepValue={1} 
+							callback={this.onChildChange}/>
 					<p />
 					<b>Min. servo range: {this.props.servoMin}</b>
 					<Slider inputValue={this.props.servoMin}
 							minValue={0}
 							maxValue={360}
 							name="servoMin"
-							stepValue={1} />
+							stepValue={1} 
+							callback={this.onChildChange}/>
 					
 				</div>
 			</div>

@@ -1,10 +1,13 @@
-
 var coreAudio = require("node-core-audio");
 var pitchFinder = require('pitchfinder');
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
+
 var io = require('socket.io')(server);
+var IoHandler = require('./iohandler.js')
+var iohandle = new IoHandler(io);
+
 var fs = require('fs');
 var five = require('johnny-five');
 
@@ -22,38 +25,109 @@ var smoothValue=0.8;
 var reverse = false;
 
 var pitch;
+var ampRaw;
+
 var detectPitchAMDF = new pitchFinder.AMDF({
 	sampleRate:40000,
 	minFrequency:5,
 	maxFrequency:1200
 });
-var detectPitchDW = new pitchFinder.DynamicWavelet();
 
+var detectPitchDW = new pitchFinder.DynamicWavelet();
 var last = new Date() //imposes a framerate with `var now`
 
 var recording = false
 var name;
 
+function main() {
+	//set up server
+	server.listen(3000);
 
+	app.use(express.static(__dirname + '/dist'));
 
-//set up server
-server.listen(3000);
+	app.get('/', function (req, res) {
+	  res.sendfile(__dirname + '/index.html');
+	});
 
-app.use(express.static(__dirname + '/dist'));
+	app.use(express.static(__dirname + '/css'));
 
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
-});
+	///////////////////////////////////////////////////////////////
+	//start of audio analysis//////////////////////////////////////
+	///////////////////////////////////////////////////////////////
 
-app.use(express.static(__dirname + '/css'));
+	// Create a new audio engine
+	var engine = coreAudio.createNewAudioEngine();
 
+		engine.setOptions({
+		outputChannels:1,
+		inputChannels:1,
+		framesPerBuffer:400,
+		sampleRate:40000
+	});
 
-//start of socket io 
-// io.on('connection', function (socket) {
-// 	console.log("socket connection established!")
-// });
+	engine.addAudioCallback( processAudio );
 
+	//////////listens for updates from frontend/////////////////////////////
 
+	io.on('connection', function (socket) {
+		console.log("connected to client!");
+	  	socket.on("updateParams", function (data) {
+	  		console.log("UpdateParams", data) //remember that this is slightly asynch. with the render loop.
+	  		if ('ap_weight' in data){
+	  			gain_for_amp = data.ap_weight;
+	  			gain_for_pitch = 1-gain_for_amp;
+	  		}
+
+	  		if('amp_dB' in data){
+	  			gain_for_amp = data["amp_dB"];
+	  			console.log("\nnew amp gain: "+gain_for_amp);
+	  		}	
+	  		if('pitch_dB' in data){
+	  			gain_for_pitch = data.pitch_dB;
+	  			console.log("\nnew pitch gain: "+gain_for_pitch);
+	  		}
+	  		if('scale' in data){
+	  			scaleFactor = data.scale;
+	  			console.log("\nnew scale factor: "+scaleFactor)
+	  		}
+	  		if('smoothing' in data){
+	  			smoothValue = data.smoothing;
+	  			console.log("\nnew smooth factor: "+smoothValue)
+	  		}
+	  		if ('servoMax' in data){
+	  			console.log("\nnew max servo range:"+servoMax)
+	  			servoMax = data.servoMax;
+	  		}
+			if ('servoMin' in data){
+				console.log("\nnew min servo range:"+servoMin)
+				servoMin = data.servoMin;
+			}
+	  		
+	    
+	 
+	  });
+	  	socket.on("startRec",function(){
+	  		startRecording()
+	  	})
+	  	socket.on("stopRec", function(){
+	  		stopRecording()
+	  	})
+	  	socket.on("reverse", function(){
+	  		reverse = !reverse
+	  	})
+	});
+
+	board.on("ready", function() {
+
+		servo = new five.Servo({
+	    pin: 10,
+	    startAt: 90
+	  });
+
+	  servoCreated=true;
+	});
+
+}
 
 function writeToAudioBufferFile(name, buffer) {
 	var out = ''
@@ -106,18 +180,6 @@ function writeParams(){
 //start of audio analysis//////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 
-
-
-// Create a new audio engine
-var engine = coreAudio.createNewAudioEngine();
-
-engine.setOptions({
-	outputChannels:1,
-	inputChannels:1,
-	framesPerBuffer:400,
-	sampleRate:40000
-	});
-
 // Add an audio processing callback
 // This function accepts an input buffer coming from the sound card,
 // and returns an ourput buffer to be sent to your speakers.
@@ -133,20 +195,9 @@ function processAudio( inputBuffer ) {
 	//vars `now` and `last` ensures it runs at 30fps
 	if ((now-last)>34){	
 
-		var ampRaw = Math.abs(Math.max.apply(Math, inputBuffer[0]));
-		var ampGain = gain_for_amp*ampRaw
-			if (ampGain>1) {
-				ampGain = 1;
-			};
-		
-		
-		
-		var ampBroadcast = broadcastAmp(ampGain);
-		
-		//console.log("inputBuffer: ",inputBuffer[0].length)
-		//console.log("\n---------------------");
-		//start of pitch analysis///////////////////////////////////////////
-		
+		ampRaw = Math.abs(Math.max.apply(Math, inputBuffer[0]));
+
+		//start of pitch analysis///////////////////////////////////////////		
 		pitch = detectPitchAMDF(inputBuffer[0]);
 		if (pitch==null){
 			pitch = 0
@@ -154,14 +205,6 @@ function processAudio( inputBuffer ) {
 		else{
 			pitch = mapValue(pitch, 0,1000,0,1)
 		}
-		// console.log("AMDF: ",pitch);
-
-		//applies gain to pitch
-		var pitchGain = gain_for_pitch*pitch
-			if (pitchGain>1.5) {
-				pitchGain = 1.5;
-			};
-
 	
 		//end of pitch analysis///////////////////////////////////////////
 		
@@ -179,122 +222,39 @@ function processAudio( inputBuffer ) {
 		last = now;
 		
 		//broadcasts values to frontend
-		var ampdBBroadcast = broadcastAmpGain(gain_for_amp)
-		var pitchdBBroadcast = broadcastPitchGain(gain_for_pitch) 
-		var mixdownBroadcast = broadcastMix(smoothOut);
-		var pitchBroadcast = broadcastPitch(pitchGain);
-		//var smoothingBroadcast = broadcastSmoothing(smoothValue);
-		var scalingBroadcast = broadcastScale(scaleFactor);
-
+		broadcastValues();
 
 		}
+
 		return inputBuffer;
 
 }
 
-engine.addAudioCallback( processAudio );
-
-
-
 //////////////socket.io emit functions////////////////
-function broadcastAmp(a) {
-	
-	io.emit("amp",a);
-	return a;
+function broadcastValues() {
+		//applies gain to pitch
+		var pitchGain = gain_for_pitch*pitch
+			if (pitchGain>1.5) {
+				pitchGain = 1.5;
+			};
+
+		var ampGain = gain_for_amp*ampRaw
+		if (ampGain>1) {
+			ampGain = 1;
+		};
+
+		iohandle.broadcastAmp(ampGain);
+		iohandle.broadcastAmpGain(gain_for_amp)
+		iohandle.broadcastPitchGain(gain_for_pitch) 
+		iohandle.broadcastMix(smoothOut);
+		iohandle.broadcastPitch(pitchGain);
+		iohandle.broadcastScale(scaleFactor);
 }
 
-function broadcastPitch(f0) {
-	io.emit("pitch", f0);
-	return f0;
-}
-
-function broadcastAmpGain(amp_gain) {
-	io.emit("amp_gain", amp_gain);
-	return amp_gain; //!!! return pitch_gain too~*
-}
-
-function broadcastPitchGain(pitch_gain) {
-	io.emit("pitch_gain", pitch_gain);
-	return pitch_gain;
-}
-
-function broadcastMix(mix){
-	io.emit("mixdown", mix);
-	return mix;
-}
-
-function broadcastScale(scale){
-	io.emit("scale", scale);
-	return scale;
-}
-
-// function broadcastSmoothing(sv){
-// 	io.emit("smoothing",sv);
-// 	return sv;
-// }
-//////////listens for updates from frontend/////////////////////////////
-
-io.on('connection', function (socket) {
-	console.log("connected to client!");
-  	socket.on("updateParams", function (data) {
-  		console.log("UpdateParams", data) //remember that this is slightly asynch. with the render loop.
-  		if ('ap_weight' in data){
-  			gain_for_amp = data.ap_weight;
-  			gain_for_pitch = 1-gain_for_amp;
-  		}
-
-  		if('amp_dB' in data){
-  			gain_for_amp = data["amp_dB"];
-  			console.log("\nnew amp gain: "+gain_for_amp);
-  		}	
-  		if('pitch_dB' in data){
-  			gain_for_pitch = data.pitch_dB;
-  			console.log("\nnew pitch gain: "+gain_for_pitch);
-  		}
-  		if('scale' in data){
-  			scaleFactor = data.scale;
-  			console.log("\nnew scale factor: "+scaleFactor)
-  		}
-  		if('smoothing' in data){
-  			smoothValue = data.smoothing;
-  			console.log("\nnew smooth factor: "+smoothValue)
-  		}
-  		if ('servoMax' in data){
-  			console.log("\nnew max servo range:"+servoMax)
-  			servoMax = data.servoMax;
-  		}
-		if ('servoMin' in data){
-			console.log("\nnew min servo range:"+servoMin)
-			servoMin = data.servoMin;
-		}
-  		
-    
- 
-  });
-  	socket.on("startRec",function(){
-  		startRecording()
-  	})
-  	socket.on("stopRec", function(){
-  		stopRecording()
-  	})
-  	socket.on("reverse", function(){
-  		reverse = !reverse
-  	})
-});
 
 //////////////////////////////////////////////////////////////
 //Arduino communication code/////////////////////////////////
 ////////////////////////////////////////////////////////////
-
-board.on("ready", function() {
-
-	servo = new five.Servo({
-    pin: 10,
-    startAt: 90
-  });
-
-  servoCreated=true;
-});
 
 function setArduino(smoothOut) {
 
@@ -314,4 +274,6 @@ function mapValue(value, minIn, maxIn, minOut, maxOut){
 	return (value / (maxIn - minIn) )*(maxOut - minOut);
 }
 
-
+///////////////////////////////////////////////////////////////////////////
+// RUN MAIN
+main()

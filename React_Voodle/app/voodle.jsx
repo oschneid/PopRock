@@ -6,9 +6,16 @@ import io from 'socket.io-client/socket.io';
 var socket = io.connect("http://localhost:3000");
 console.log("here is a helpful console log")
 
+
+
 var Settings = React.createClass({
+	onChildChange: function(keyname){
+		console.log(keyname)
+		this.setState(keyname)
+	},
+
 	getInitialState: function(){
-		return{recording:false}
+		return{recording:false, smoothing:this.props.smoothing}
 	},
 	startRecording: function(){
 		if (this.state.recording == false){
@@ -23,7 +30,10 @@ var Settings = React.createClass({
 			console.log("stop rec emit called!")
 		}
 		this.setState({recording:false})
-
+	},
+	reverse: function(){
+			socket.emit("reverse")
+			console.log("reverse called!")
 	},
 	render: function(){
 		return (
@@ -49,17 +59,41 @@ var Settings = React.createClass({
 							name="scale"
 							stepValue={1} />
 					<p />
-					<b>Smoothing:</b>{stringify(this.props.smoothing)} <Slider inputValue={this.props.smoothing}
+					<b>Smoothing:</b>{stringify(this.state.smoothing)} 
+					<Slider inputValue={this.state.smoothing}
 							minValue={0}
 							maxValue={1}
 							name="smoothing"
-							stepValue={0.05} />
+							stepValue={0.05}
+							callback={this.onChildChange} />
 					<p />
 					
 				</div>
-				<div id="record_save">
-					<button type="button" onClick={this.startRecording}><b>Record</b></button>
-					<button type="button" onClick={this.stopRecording}><b>Stop</b></button>
+				<p />
+				<div id="edit">
+					<b>Recording</b><p />
+					<button type="button" id="button" onClick={this.startRecording}><b>Record</b></button>  
+					<button type="button" id="button" onClick={this.stopRecording}><b>Stop</b></button>
+				</div>
+				<p />
+				<div id="edit">
+					<b>Arduino settings</b><p />
+					<button type="button" id="button" onClick={this.reverse}><b>Reverse direction</b></button>
+					<p />
+					<b>Max servo range: {this.props.servoMax}</b>
+					<Slider inputValue={this.props.servoMax}
+							minValue={0}
+							maxValue={360}
+							name="servoMax"
+							stepValue={1} />
+					<p />
+					<b>Min. servo range: {this.props.servoMin}</b>
+					<Slider inputValue={this.props.servoMin}
+							minValue={0}
+							maxValue={360}
+							name="servoMin"
+							stepValue={1} />
+					
 				</div>
 			</div>
 			)
@@ -77,8 +111,10 @@ var Slider = React.createClass({
 
 	  var keyname = {}
 	  keyname[this.props.name] = event.target.value
-
+	  console.log(keyname)
 	  socket.emit("updateParams", keyname);
+
+	  this.props.callback(keyname);
 	},
 	render: function() {
 	  return (
@@ -115,7 +151,9 @@ var Voodle = React.createClass({
 						amp_gain={this.props.amp_gain}
 						pitch_gain={this.props.pitch_gain}
 						scaleFactor={this.props.scaleFactor}
-						smoothing={this.props.smoothing} />
+						smoothing={this.props.smoothing}
+						servoMax={this.props.servoMax}
+						servoMin={this.props.servoMin} />
 			 
 				</div>)
 	}

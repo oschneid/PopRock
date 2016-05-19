@@ -12,6 +12,8 @@ var mix = 0.0;
 var visualScaleFactor = 500;
 var scaleFactor =0;
 var smoothingFactor = 0.8;
+var initServoMax = 85;
+var initServoMin= 20;
 
 socket.on("amp",function(data){
 	    amp = data;
@@ -63,6 +65,8 @@ function main() {
 								mix={mix}
 								scale={visualScaleFactor}
 								smoothing={smoothingFactor}
-								scaleFactor={scaleFactor} />
-								, document.getElementById('app'));
+								scaleFactor={scaleFactor}
+								servoMax={initServoMax}
+								servoMin={initServoMin} />,
+								document.getElementById('app'));
 	}

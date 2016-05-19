@@ -36,28 +36,21 @@ socket.on("pitch_gain", function(db){
 })
 
 socket.on("mixdown", function(m){
-	mix = m;
-	
-	
+	mix = m;	
 })
 
-// socket.on("smoothing", function(v){
-// 	smoothingFactor=v;
-// 	console.log("setting smoothingFactor to: "+v)
+socket.on("smoothing", function(v){
+	smoothingFactor=v;
+	console.log("setting smoothingFactor to: "+v)
 	
-// })
+})
 
 socket.on("scale", function(scaling){
 	scaleFactor=scaling;
 	main()
 	})
 
-
-
-
-
 function main() {
-		//console.log("MAIN.JS amp: "+amp)
 		React.render(<Voodle 	amp={amp} 
 								pitch={pitch}
 								amp_gain={amp_gain}

@@ -1,12 +1,8 @@
-
-
 import React from 'react';
-
 import io from 'socket.io-client/socket.io';
+
 var socket = io.connect("http://localhost:3000");
 console.log("here is a helpful console log")
-
-
 
 var Settings = React.createClass({
 	onChildChange: function(keyname){
@@ -90,14 +86,16 @@ var Settings = React.createClass({
 							minValue={0}
 							maxValue={360}
 							name="servoMax"
-							stepValue={1} />
+							stepValue={1} 
+							callback={this.onChildChange}/>
 					<p />
 					<b>Min. servo range: {this.props.servoMin}</b>
 					<Slider inputValue={this.props.servoMin}
 							minValue={0}
 							maxValue={360}
 							name="servoMin"
-							stepValue={1} />
+							stepValue={1} 
+							callback={this.onChildChange}/>
 					
 				</div>
 			</div>

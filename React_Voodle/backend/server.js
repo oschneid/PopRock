@@ -3,42 +3,48 @@ var pitchFinder = require('pitchfinder');
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-
 var io = require('socket.io')(server);
-var IoHandler = require('./iohandler.js')
-var iohandle = new IoHandler(io);
-
 var fs = require('fs');
 var five = require('johnny-five');
 
-var smoothOut = 1;
-var gain_for_amp = 0.4; 
-var gain_for_pitch = 0.6;
-var scaleFactor = 3;
+// Local requires
+var IoHandler = require('./iohandler.js');
+var iohandle = new IoHandler(io);
 
-var board = new five.Board();
+var Recorder = require('./recorder.js');
+var recHandler = new Recorder();
+
+// Globals
+
+var parameters = {
+	smoothValue: 0.8, 
+	gain_for_amp: 0.4,
+	gain_for_pitch: 0.6,
+	scaleFactor: 3,
+	servoMax: 85,
+	servoMin: 20,
+}
+
+
+var board;
 var servoCreated = false;
 var servo;
-var servoMax = 85;
-var servoMin= 20;
-var smoothValue=0.8;
 var reverse = false;
 
 var pitch;
 var ampRaw;
+var smoothOut = 1;
 
-var detectPitchAMDF = new pitchFinder.AMDF({
-	sampleRate:40000,
-	minFrequency:5,
-	maxFrequency:1200
-});
+var detectPitchAMDF;
 
-var detectPitchDW = new pitchFinder.DynamicWavelet();
+// var detectPitchDW = new pitchFinder.DynamicWavelet();
 var last = new Date() //imposes a framerate with `var now`
 
 var recording = false
 var name;
 
+///////////////////////////////////////////////////////////////////
+// Main
 function main() {
 	//set up server
 	server.listen(3000);
@@ -50,6 +56,14 @@ function main() {
 	});
 
 	app.use(express.static(__dirname + '/css'));
+
+	board = new five.Board();
+
+	detectPitchAMDF = new pitchFinder.AMDF({
+		sampleRate:40000,
+		minFrequency:5,
+		maxFrequency:1200
+	});
 
 	///////////////////////////////////////////////////////////////
 	//start of audio analysis//////////////////////////////////////
@@ -72,35 +86,27 @@ function main() {
 	io.on('connection', function (socket) {
 		console.log("connected to client!");
 	  	socket.on("updateParams", function (data) {
+
 	  		console.log("UpdateParams", data) //remember that this is slightly asynch. with the render loop.
 	  		if ('ap_weight' in data){
-	  			gain_for_amp = data.ap_weight;
-	  			gain_for_pitch = 1-gain_for_amp;
-	  		}
-
-	  		if('amp_dB' in data){
-	  			gain_for_amp = data["amp_dB"];
-	  			console.log("\nnew amp gain: "+gain_for_amp);
-	  		}	
-	  		if('pitch_dB' in data){
-	  			gain_for_pitch = data.pitch_dB;
-	  			console.log("\nnew pitch gain: "+gain_for_pitch);
+	  			parameters.gain_for_amp = data.ap_weight;
+	  			parameters.gain_for_pitch = 1 - parameters.gain_for_amp;
 	  		}
 	  		if('scale' in data){
-	  			scaleFactor = data.scale;
-	  			console.log("\nnew scale factor: "+scaleFactor)
+	  			parameters.scaleFactor = data.scale;
+	  			console.log("\nnew scale factor: " + parameters.scaleFactor)
 	  		}
 	  		if('smoothing' in data){
-	  			smoothValue = data.smoothing;
-	  			console.log("\nnew smooth factor: "+smoothValue)
+	  			parameters.smoothValue = data.smoothing;
+	  			console.log("\nnew smooth factor: "+ parameters.smoothValue)
 	  		}
 	  		if ('servoMax' in data){
-	  			console.log("\nnew max servo range:"+servoMax)
-	  			servoMax = data.servoMax;
+	  			console.log("\nnew max servo range:" + parameters.servoMax)
+	  			parameters.servoMax = data.servoMax;
 	  		}
 			if ('servoMin' in data){
-				console.log("\nnew min servo range:"+servoMin)
-				servoMin = data.servoMin;
+				console.log("\nnew min servo range:" + parameters.servoMin)
+				parameters.servoMin = data.servoMin;
 			}
 	 
 	  });
@@ -127,6 +133,13 @@ function main() {
 
 }
 
+function handleRecording(buffer){
+	if (recording ==  true){
+		writeToAudioBufferFile(name, buffer)
+
+	}
+}
+
 function writeToAudioBufferFile(name, buffer) {
 	var out = ''
 	buffer.forEach(function(f){
@@ -138,13 +151,6 @@ function writeToAudioBufferFile(name, buffer) {
 		}
 	})
 
-}
-
-function handleRecording(buffer){
-	if (recording ==  true){
-		writeToAudioBufferFile(name, buffer)
-
-	}
 }
 
 function startRecording(){
@@ -160,13 +166,7 @@ function stopRecording(){
 }
 
 function writeParams(){
-	var params = {	smoothing:smoothValue, 
-					pitchBias:gain_for_pitch,
-					scaling:scaleFactor,
-					servo_max:servoMax,
-					servo_min:servoMin}
-
-	fs.appendFile("./recordings/"+name+"_parameters.json", JSON.stringify(params), function(err){
+	fs.appendFile("./recordings/" + name + "_parameters.json", JSON.stringify(parameters), function(err){
 	if (err){
 		return console.log(err);
 	}
@@ -207,11 +207,11 @@ function processAudio( inputBuffer ) {
 		//end of pitch analysis///////////////////////////////////////////
 		
 		//mixes amplitude and frequency, while scaling it up by scaleFactor.
-		var ampPitchMix = (gain_for_amp*ampRaw+gain_for_pitch*pitch)*scaleFactor;
+		var ampPitchMix = (parameters.gain_for_amp * ampRaw + parameters.gain_for_pitch * pitch) * parameters.scaleFactor;
 		
 		//smooths values
 		//Note: smoothValue is a number between 0-1
-		smoothOut = smoothValue*smoothOut+(1-smoothValue)*ampPitchMix;
+		smoothOut = parameters.smoothValue * smoothOut + (1 - parameters.smoothValue) * ampPitchMix;
 		
 		//writes values to arduino
 		setArduino(smoothOut);
@@ -231,22 +231,24 @@ function processAudio( inputBuffer ) {
 //////////////socket.io emit functions////////////////
 function broadcastValues() {
 		//applies gain to pitch
-		var pitchGain = gain_for_pitch*pitch
-			if (pitchGain>1.5) {
-				pitchGain = 1.5;
-			};
+		var pitchGain = parameters.gain_for_pitch * pitch
+		if (pitchGain > 1.5) {
+			pitchGain = 1.5;
+		};
 
-		var ampGain = gain_for_amp*ampRaw
-		if (ampGain>1) {
+		var ampGain = parameters.gain_for_amp * ampRaw
+		if (ampGain > 1) {
 			ampGain = 1;
 		};
 
 		iohandle.broadcastAmp(ampGain);
-		iohandle.broadcastAmpGain(gain_for_amp)
-		iohandle.broadcastPitchGain(gain_for_pitch) 
-		iohandle.broadcastMix(smoothOut);
 		iohandle.broadcastPitch(pitchGain);
-		iohandle.broadcastScale(scaleFactor);
+		iohandle.broadcastMix(smoothOut);
+
+		iohandle.broadcastAmpGain(parameters.gain_for_amp)
+		iohandle.broadcastPitchGain(parameters.gain_for_pitch) 
+		iohandle.broadcastScale(parameters.scaleFactor);
+		
 }
 
 
@@ -254,16 +256,15 @@ function broadcastValues() {
 //Arduino communication code/////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-function setArduino(smoothOut) {
-
+function setArduino(sm) {
 	if (servoCreated){
 		if (reverse){
 		//maps the audio input to the servo value range, and calculates the difference
 		//so that it moves upwards with increased amplitude.
-		servo.to(mapValue(smoothOut, 0, 1, servoMin, servoMax));
+		servo.to(mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
 		}
 		else {
-				servo.to(servoMax-mapValue(smoothOut, 0, 1, servoMin, servoMax));
+				servo.to(parameters.servoMax - mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
 			}
 	};
 };

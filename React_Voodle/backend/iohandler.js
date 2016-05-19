@@ -5,9 +5,9 @@ function IoHandler(io) {
   // this.baz = 'baz'; // default value
 }
 // class methods
-IoHandler.prototype.test = function() {
-	console.log("Tested IO as class")
-};
+// IoHandler.prototype.test = function() {
+// 	console.log("Tested IO as class")
+// };
 
 IoHandler.prototype.broadcastAmp = function (a) {
 	this.io.emit("amp",a);
@@ -29,7 +29,7 @@ IoHandler.prototype.broadcastPitchGain = function (pitch_gain) {
 	return pitch_gain;
 }
 
-IoHandler.prototype.broadcastMix = function (mix){
+IoHandler.prototype.broadcastMix = function (mix) {
 	this.io.emit("mixdown", mix);
 	return mix;
 }

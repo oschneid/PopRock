@@ -5,21 +5,23 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-
+var fs = require('fs');
 var five = require('johnny-five');
+
 var smoothOut = 1;
 var gain_for_amp = 0.4; 
 var gain_for_pitch = 0.6;
 var scaleFactor = 3;
+
 var board = new five.Board();
 var servoCreated = false;
 var servo;
 var servoMax = 85;
 var servoMin= 20;
 var smoothValue=0.8;
+var reverse = false;
 
 var pitch;
-
 var detectPitchAMDF = new pitchFinder.AMDF({
 	sampleRate:40000,
 	minFrequency:5,
@@ -28,6 +30,11 @@ var detectPitchAMDF = new pitchFinder.AMDF({
 var detectPitchDW = new pitchFinder.DynamicWavelet();
 
 var last = new Date() //imposes a framerate with `var now`
+
+var recording = false
+var name;
+
+
 
 //set up server
 server.listen(3000);
@@ -42,15 +49,58 @@ app.use(express.static(__dirname + '/css'));
 
 
 //start of socket io 
-io.on('connection', function (socket) {
-	console.log("socket connection established!")
-});
+// io.on('connection', function (socket) {
+// 	console.log("socket connection established!")
+// });
 
 
 
+function writeToAudioBufferFile(name, buffer) {
+	var out = ''
+	buffer.forEach(function(f){
+		out = out +'0,' + f + '\n'
+	})
+	fs.appendFile("./recordings/"+name+"_recording.csv", out, function(err){
+		if (err){
+			return console.log(err);
+		}
+	})
 
+}
 
+function handleRecording(buffer){
+	if (recording ==  true){
+		writeToAudioBufferFile(name, buffer)
 
+	}
+}
+
+function startRecording(){
+	console.log("start rec. has been called!")
+	recording = true;
+	var n = new Date()
+	name = n.getTime();
+}
+
+function stopRecording(){
+	recording = false;
+	writeParams();
+}
+
+function writeParams(){
+	var params = {	smoothing:smoothValue, 
+					pitchBias:gain_for_pitch,
+					scaling:scaleFactor,
+					servo_max:servoMax,
+					servo_min:servoMin}
+
+	fs.appendFile("./recordings/"+name+"_parameters.json", JSON.stringify(params), function(err){
+	if (err){
+		return console.log(err);
+	}
+	console.log("wrote params file!")
+	})
+}
 
 ///////////////////////////////////////////////////////////////
 //start of audio analysis//////////////////////////////////////
@@ -79,6 +129,7 @@ engine.setOptions({
 
 function processAudio( inputBuffer ) {
 	var now = new Date()
+	handleRecording(inputBuffer[0])
 	//vars `now` and `last` ensures it runs at 30fps
 	if ((now-last)>34){	
 
@@ -89,7 +140,7 @@ function processAudio( inputBuffer ) {
 			};
 		
 		
-
+		
 		var ampBroadcast = broadcastAmp(ampGain);
 		
 		//console.log("inputBuffer: ",inputBuffer[0].length)
@@ -132,7 +183,7 @@ function processAudio( inputBuffer ) {
 		var pitchdBBroadcast = broadcastPitchGain(gain_for_pitch) 
 		var mixdownBroadcast = broadcastMix(smoothOut);
 		var pitchBroadcast = broadcastPitch(pitchGain);
-		var smoothingBroadcast = broadcastSmoothing(smoothValue);
+		//var smoothingBroadcast = broadcastSmoothing(smoothValue);
 		var scalingBroadcast = broadcastScale(scaleFactor);
 
 
@@ -177,16 +228,16 @@ function broadcastScale(scale){
 	return scale;
 }
 
-function broadcastSmoothing(sv){
-	io.emit("smoothing",sv);
-	return sv;
-}
+// function broadcastSmoothing(sv){
+// 	io.emit("smoothing",sv);
+// 	return sv;
+// }
 //////////listens for updates from frontend/////////////////////////////
 
 io.on('connection', function (socket) {
 	console.log("connected to client!");
   	socket.on("updateParams", function (data) {
-
+  		console.log("UpdateParams", data) //remember that this is slightly asynch. with the render loop.
   		if ('ap_weight' in data){
   			gain_for_amp = data.ap_weight;
   			gain_for_pitch = 1-gain_for_amp;
@@ -195,7 +246,7 @@ io.on('connection', function (socket) {
   		if('amp_dB' in data){
   			gain_for_amp = data["amp_dB"];
   			console.log("\nnew amp gain: "+gain_for_amp);
-  		}
+  		}	
   		if('pitch_dB' in data){
   			gain_for_pitch = data.pitch_dB;
   			console.log("\nnew pitch gain: "+gain_for_pitch);
@@ -208,10 +259,27 @@ io.on('connection', function (socket) {
   			smoothValue = data.smoothing;
   			console.log("\nnew smooth factor: "+smoothValue)
   		}
+  		if ('servoMax' in data){
+  			console.log("\nnew max servo range:"+servoMax)
+  			servoMax = data.servoMax;
+  		}
+		if ('servoMin' in data){
+			console.log("\nnew min servo range:"+servoMin)
+			servoMin = data.servoMin;
+		}
   		
     
  
   });
+  	socket.on("startRec",function(){
+  		startRecording()
+  	})
+  	socket.on("stopRec", function(){
+  		stopRecording()
+  	})
+  	socket.on("reverse", function(){
+  		reverse = !reverse
+  	})
 });
 
 //////////////////////////////////////////////////////////////
@@ -231,10 +299,14 @@ board.on("ready", function() {
 function setArduino(smoothOut) {
 
 	if (servoCreated){
+		if (reverse){
 		//maps the audio input to the servo value range, and calculates the difference
 		//so that it moves upwards with increased amplitude.
-		servo.to(servoMax-mapValue(smoothOut, 0, 1, servoMin, servoMax));
-		
+		servo.to(mapValue(smoothOut, 0, 1, servoMin, servoMax));
+		}
+		else {
+				servo.to(servoMax-mapValue(smoothOut, 0, 1, servoMin, servoMax));
+			}
 	};
 };
 

@@ -25,10 +25,26 @@ var parameters = {
 	servoMin: 20,
 }
 
+// David
 
-var board;
+var led;
+var ledCreated = false;
+var servoMode = true;
+var motorMode = false;
+var ledMode = true;
+
+var motor;
+var motorCreated = false; 
+var motorMin=50;
+var motorMax=255;
+
 var servoCreated = false;
 var servo;
+
+
+//
+
+var board;
 var reverse = false;
 
 var pitch;
@@ -123,13 +139,44 @@ function main() {
 
 	board.on("ready", function() {
 
-		servo = new five.Servo({
-	    pin: 10,
-	    startAt: 90
+	if (servoMode){
+			servo = new five.Servo({
+		    pin: 6,
+		    startAt: 90
+		  });
+
+		  servoCreated=true;
+		};
+	if (motorMode){
+		//this uses the adafruit shield (v2).
+		var configs = five.Motor.SHIELD_CONFIGS.ADAFRUIT_V2;
+	  		motor = new five.Motor(configs.M1);
+
+	  // Inject the `motor` hardware into
+	  // the Repl instance's context;
+	  // allows direct command line access
+		board.repl.inject({
+	    motor: motor
+	    });
+	    motorCreated=true;	
+	};
+	if (ledMode){
+		//constructs an RGB LED
+	  led = new five.Led.RGB({
+	    pins: {
+	      red: 9,
+	      green: 10,
+	      blue: 11,
+	    }
 	  });
 
-	  servoCreated=true;
-	});
+	  this.repl.inject({
+	    led: led
+	  });
+	  ledCreated =true;
+	}
+
+});
 
 }
 
@@ -257,16 +304,35 @@ function broadcastValues() {
 ////////////////////////////////////////////////////////////
 
 function setArduino(sm) {
+	// if (servoCreated){
+	// 	if (reverse){
+	// 	//maps the audio input to the servo value range, and calculates the difference
+	// 	//so that it moves upwards with increased amplitude.
+	// 	servo.to(mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
+	// 	}
+	// 	else {
+	// 			servo.to(parameters.servoMax - mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
+	// 		}
+	// };
+
 	if (servoCreated){
 		if (reverse){
 		//maps the audio input to the servo value range, and calculates the difference
 		//so that it moves upwards with increased amplitude.
-		servo.to(mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
+			servo.to(mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
 		}
 		else {
 				servo.to(parameters.servoMax - mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
 			}
 	};
+	if(motorCreated){
+	
+		motor.start(mapValue(sm, 0, 1, motorMin, motorMax));
+	};
+	if(ledCreated){
+		n = mapValue(sm, 0, 1, 0, 255)
+	    led.color(n,0,n);
+  	};
 };
 
 function mapValue(value, minIn, maxIn, minOut, maxOut){

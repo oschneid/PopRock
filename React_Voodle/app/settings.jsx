@@ -1,34 +1,50 @@
 import React from 'react';
 import io from 'socket.io-client/socket.io';
 
-var socket = io.connect("http://localhost:3000");
 var Slider = require("./slider.jsx")
 var Settings = React.createClass({
+	componentDidMount: function() {
+		var socket = io.connect("http://localhost:3000");
+		socket.on("amp",function(data){
+	    	this.setState({amp:data});
+		}.bind(this));
+
+		socket.on("pitch", function(f0) {
+			this.setState({pitch:f0})
+		}.bind(this));
+
+		this.setState({socket:socket});
+	},
 	onChildChange: function(keyname){
 		// console.log(keyname)
-		socket.emit("updateParams", keyname);
+		this.state.socket.emit("updateParams", keyname);
 		this.setState(keyname)
 	},
-
 	getInitialState: function(){
-		return{recording:false, smoothing:this.props.smoothing}
+		return { 
+			recording:false, 
+			smoothing:this.props.smoothing,
+			amp:0.0,
+			pitch:0.0,
+
+		}
 	},
 	startRecording: function(){
 		if (this.state.recording == false){
-			socket.emit("startRec")
+			this.state.socket.emit("startRec")
 			console.log("startRecording in jsx called!")
 		}
 		this.setState({recording:true})
 	},
 	stopRecording: function(){
 		if (this.state.recording == true){
-			socket.emit("stopRec")
+			this.state.socket.emit("stopRec")
 			console.log("stop rec emit called!")
 		}
 		this.setState({recording:false})
 	},
 	reverse: function(){
-			socket.emit("reverse")
+			this.state.socket.emit("reverse")
 			console.log("reverse called!")
 	},
 	render: function(){
@@ -36,25 +52,30 @@ var Settings = React.createClass({
 						<div>
 			<div id ="leftPanel">
 				<div id ="readOut">
-					<b>Amplitude:</b> {this.props.amp}
+					<b>Amplitude:</b> {(this.state.amp).toString().substring(0,5)}
 					<p />
-					<b>Pitch:</b> {this.props.pitch}
+					<b>Pitch:</b> {(this.state.pitch).toString().substring(0,5)}
 
 				</div><p />
 				<div id = "edit">
 				<span id="title">Settings</span>
 				<p />
-					{stringify(this.props.amp_gain)} <b>pitch bias</b> <Slider inputValue={0.5}
+					{stringify(this.props.amp_gain)} <b>pitch bias</b> 
+					<Slider inputValue={0.5}
 							minValue={0}
 							maxValue={1}
 							name="ap_weight"
-							stepValue={0.05}/><b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
+							stepValue={0.05}
+							callback={this.onChildChange}/>
+					<b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
 					<p />
-					<b>Scale factor:</b>{this.props.scaleFactor} <Slider inputValue={this.props.scaleFactor}
+					<b>Scale factor:</b>{this.props.scaleFactor} 
+					<Slider inputValue={this.props.scaleFactor}
 							minValue={0}
 							maxValue={6}
 							name="scale"
-							stepValue={1} />
+							stepValue={1} 
+							callback={this.onChildChange}/>
 					<p />
 					<b>Smoothing:</b>{stringify(this.state.smoothing)} 
 					<Slider inputValue={this.state.smoothing}
@@ -84,14 +105,16 @@ var Settings = React.createClass({
 							minValue={0}
 							maxValue={360}
 							name="servoMax"
-							stepValue={1} />
+							stepValue={1} 
+							callback={this.onChildChange} />
 					<p />
 					<b>Min. servo range: {this.props.servoMin}</b>
 					<Slider inputValue={this.props.servoMin}
 							minValue={0}
 							maxValue={360}
 							name="servoMin"
-							stepValue={1} />
+							stepValue={1}
+							callback={this.onChildChange} />
 					
 				</div>
 				<p />
@@ -103,7 +126,6 @@ var Settings = React.createClass({
 			</div>
 			</div>
 			)
-
 	}
 })
 

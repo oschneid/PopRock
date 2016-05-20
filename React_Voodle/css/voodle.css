@@ -15,7 +15,7 @@ body {
 
 
 }
-#settings {
+#leftPanel {
 	
 	font-family: "Helvetica Nueue", sans-serif;
 	color: #DDD;
@@ -26,6 +26,16 @@ body {
     opacity: 0.9;
 	
 	
+}
+
+#rightPanel {
+	font-family: "Helvetica Nueue", sans-serif;
+	color: #DDD;
+	float:right;
+	position: absolute;
+    right: 5px; 
+    top: 25px;
+    opacity: 0.9;
 }
 
 #readOut{
@@ -50,8 +60,9 @@ body {
 	
 }
 #title {
-	color:#AAA;
+	color:#AC0;
 	font-weight: bold;
+	font-style: italic;
 }
 #circleContainer {
 	height: 100vh;

@@ -3,27 +3,6 @@ import io from 'socket.io-client/socket.io';
 
 var Slider = require("./slider.jsx")
 var Settings = React.createClass({
-	componentDidMount: function() {
-		var socket = io.connect("http://localhost:3000");
-		socket.on("amp",function(data){
-	    	this.setState({amp:data});
-		}.bind(this));
-
-		socket.on("pitch", function(f0) {
-			this.setState({pitch:f0})
-		}.bind(this));
-
-		socket.on("amp_gain", function(db){
-			this.setState({amp_gain:db});
-			
-		}.bind(this))
-
-		socket.on("pitch_gain", function(db){
-			this.setState({pitch_gain:db});
-		}.bind(this))
-
-		this.setState({socket:socket});
-	},
 	onChildChange: function(keyname){
 		// console.log(keyname)
 		this.state.socket.emit("updateParams", keyname);
@@ -39,6 +18,7 @@ var Settings = React.createClass({
 			servoMax:85,
 			servoMin:20,
 			ap_weight:0.0,
+			socket:this.props.socket,
 		}
 	},
 	startRecording: function(){
@@ -61,14 +41,8 @@ var Settings = React.createClass({
 	},
 	render: function(){
 		return (
-						<div>
+			<div>
 			<div id ="leftPanel">
-				<div id ="readOut">
-					<b>Amplitude:</b> {(this.state.amp).toString().substring(0,5)}
-					<p />
-					<b>Pitch:</b> {(this.state.pitch).toString().substring(0,5)}
-
-				</div><p />
 				<div id = "edit">
 				<span id="title">Settings</span>
 				<p />
@@ -127,7 +101,6 @@ var Settings = React.createClass({
 							name="servoMin"
 							stepValue={1}
 							callback={this.onChildChange} />
-					
 				</div>
 				<p />
 				<div id="edit">

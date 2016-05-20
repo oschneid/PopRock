@@ -1,11 +1,8 @@
 import React from 'react';
-import io from 'socket.io-client/socket.io';
-
 var Slider = require("./slider.jsx")
 var Settings = React.createClass({
 	onChildChange: function(keyname){
-		// console.log(keyname)
-		this.state.socket.emit("updateParams", keyname);
+		this.props.emit("updateParams", keyname);
 		this.setState(keyname)
 	},
 	getInitialState: function(){
@@ -23,20 +20,20 @@ var Settings = React.createClass({
 	},
 	startRecording: function(){
 		if (this.state.recording == false){
-			this.state.socket.emit("startRec")
+			this.props.emit("startRec")
 			console.log("startRecording in jsx called!")
 		}
 		this.setState({recording:true})
 	},
 	stopRecording: function(){
 		if (this.state.recording == true){
-			this.state.socket.emit("stopRec")
+			this.props.emit("stopRec")
 			console.log("stop rec emit called!")
 		}
 		this.setState({recording:false})
 	},
 	reverse: function(){
-			this.state.socket.emit("reverse")
+			this.props.emit("reverse")
 			console.log("reverse called!")
 	},
 	render: function(){

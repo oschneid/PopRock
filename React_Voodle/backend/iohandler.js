@@ -39,6 +39,12 @@ IoHandler.prototype.broadcastScale = function (scale){
 	return scale;
 }
 
+IoHandler.prototype.broadcast = function (msg){
+	this.io.emit("broadcast", msg);
+	return msg;
+}
+
+
 
 // export the class
 module.exports = IoHandler;

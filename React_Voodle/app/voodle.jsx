@@ -15,19 +15,14 @@ var Voodle = React.createClass({
 			socket:{}
 		}
 	},
+	emit: function(st,msg) {
+		this.state.socket.emit(st,msg)
+	},
 	componentDidMount: function() {
 		var socket = io.connect("http://localhost:3000");
 
-		socket.on("amp",function(data){
-	    	this.setState({amp:data});
-		}.bind(this));
-
-		socket.on("pitch", function(f0) {
-			this.setState({pitch:f0})
-		}.bind(this));
-
-		socket.on("mixdown", function(m){
-			this.setState({mix:m});
+		socket.on("broadcast",function(msg){
+			this.setState(msg);
 		}.bind(this))
 
 		this.setState({socket:socket})
@@ -40,7 +35,6 @@ var Voodle = React.createClass({
 		else {
 			radius = (this.state.mix) * (this.state.scale)
 		}
-		// console.log(radius)
 		return (
 			<div>
 			<div id = "canvas">
@@ -55,7 +49,7 @@ var Voodle = React.createClass({
 						<p />
 						<b>Pitch:</b> {(this.state.pitch).toString().substring(0,5)}
 					</div>
-					<Settings socket={this.state.socket}/>
+					<Settings emit={this.emit}/>
 				</div>
 			</div>)
 	}

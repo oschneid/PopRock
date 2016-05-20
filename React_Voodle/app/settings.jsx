@@ -13,6 +13,15 @@ var Settings = React.createClass({
 			this.setState({pitch:f0})
 		}.bind(this));
 
+		socket.on("amp_gain", function(db){
+			this.setState({amp_gain:db});
+			
+		}.bind(this))
+
+		socket.on("pitch_gain", function(db){
+			this.setState({pitch_gain:db});
+		}.bind(this))
+
 		this.setState({socket:socket});
 	},
 	onChildChange: function(keyname){
@@ -23,10 +32,13 @@ var Settings = React.createClass({
 	getInitialState: function(){
 		return { 
 			recording:false, 
-			smoothing:this.props.smoothing,
+			smoothing:0.8,
 			amp:0.0,
 			pitch:0.0,
-
+			scale:3.0,
+			servoMax:85,
+			servoMin:20,
+			ap_weight:0.0,
 		}
 	},
 	startRecording: function(){
@@ -60,17 +72,17 @@ var Settings = React.createClass({
 				<div id = "edit">
 				<span id="title">Settings</span>
 				<p />
-					{stringify(this.props.amp_gain)} <b>pitch bias</b> 
+					{stringify(this.state.ap_weight)} <b>pitch bias</b> 
 					<Slider inputValue={0.5}
 							minValue={0}
 							maxValue={1}
 							name="ap_weight"
 							stepValue={0.05}
 							callback={this.onChildChange}/>
-					<b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
+					<b> amp bias </b>{stringify(1.0-this.state.ap_weight)}
 					<p />
-					<b>Scale factor:</b>{this.props.scaleFactor} 
-					<Slider inputValue={this.props.scaleFactor}
+					<b>Scale factor: </b>{this.state.scale} 
+					<Slider inputValue={this.state.scale}
 							minValue={0}
 							maxValue={6}
 							name="scale"
@@ -100,16 +112,16 @@ var Settings = React.createClass({
 					<span id='title'>Servo settings</span><p />
 					<button type="button" id="button" onClick={this.reverse}><b>Reverse</b></button>
 					<p />
-					<b>Max servo range: {this.props.servoMax}</b>
-					<Slider inputValue={this.props.servoMax}
+					<b>Max servo range: {this.state.servoMax}</b>
+					<Slider inputValue={this.state.servoMax}
 							minValue={0}
 							maxValue={360}
 							name="servoMax"
 							stepValue={1} 
 							callback={this.onChildChange} />
 					<p />
-					<b>Min. servo range: {this.props.servoMin}</b>
-					<Slider inputValue={this.props.servoMin}
+					<b>Min. servo range: {this.state.servoMin}</b>
+					<Slider inputValue={this.state.servoMin}
 							minValue={0}
 							maxValue={360}
 							name="servoMin"

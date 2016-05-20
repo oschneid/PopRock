@@ -1,24 +1,38 @@
 import React from 'react';
 var Settings = require("./settings.jsx")
+var io = require('socket.io-client/socket.io');
+
 
 var Voodle = React.createClass({
-	render: function(){
-		if (((this.props.mix)*(this.props.scale))<0){
-			var radius = 0.1;
+	getInitialState: function() {
+		return {
+			mix:0.0,
+			smoothingFactor:0.0,
+			scaleFactor:0.0,
+			scale:500,
 		}
-		else
-			var radius = (this.props.mix)*(this.props.scale)
+	},
+	componentDidMount: function() {
+		var socket = io.connect("http://localhost:3000");
+		socket.on("mixdown", function(m){
+			this.setState({mix:m});
+		}.bind(this))
+	},
+	render: function(){
+		var radius;
+		if ( ((this.state.mix) * (this.state.scale)) < 0) {
+			radius = 0.1;
+		}
+		else {
+			radius = (this.state.mix) * (this.state.scale)
+		}
+		// console.log(radius)
 		return (
 			<div id = "canvas">
 			<svg id = "circleContainer">
 				<circle cx={window.innerWidth/2} cy={window.innerHeight/2} r={radius} fill="#00FF00" />
 			</svg>
-			<Settings   amp_gain={this.props.amp_gain}
-						pitch_gain={this.props.pitch_gain}
-						scaleFactor={this.props.scaleFactor}
-						smoothing={this.props.smoothing}
-						servoMax={this.props.servoMax}
-						servoMin={this.props.servoMin} />
+			<Settings />
 			 
 			</div>)
 	}

@@ -48,13 +48,16 @@ var Settings = React.createClass({
 							minValue={0}
 							maxValue={1}
 							name="ap_weight"
+							callback={this.onChildChange}
 							stepValue={0.05}/><b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
+							
 					<p />
 					<b>Scale factor:</b>{this.props.scaleFactor} <Slider inputValue={this.props.scaleFactor}
 							minValue={0}
 							maxValue={6}
 							name="scale"
-							stepValue={1} />
+							stepValue={1}
+							callback={this.onChildChange} />
 					<p />
 					<b>Smoothing:</b>{stringify(this.state.smoothing)} 
 					<Slider inputValue={this.state.smoothing}

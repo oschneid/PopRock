@@ -21,7 +21,7 @@ IoHandler.prototype.broadcastPitch = function (f0) {
 
 IoHandler.prototype.broadcastAmpGain = function (amp_gain) {
 	this.io.emit("amp_gain", amp_gain);
-	return amp_gain; //!!! return pitch_gain too~*
+	return amp_gain;
 }
 
 IoHandler.prototype.broadcastPitchGain = function (pitch_gain) {

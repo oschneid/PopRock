@@ -23,20 +23,20 @@ var parameters = {
 	scaleFactor: 3,
 	servoMax: 85,
 	servoMin: 20,
+	motorMinSpeed:50,
+	motorMaxSpeed:255,
 }
 
 // David
 
 var led;
 var ledCreated = false;
-var servoMode = true;
-var motorMode = false;
-var ledMode = true;
+var servoMode = false;
+var motorMode = true;
+var ledMode = false;
 
 var motor;
-var motorCreated = false; 
-var motorMin=50;
-var motorMax=255;
+var motorCreated = false;
 
 var servoCreated = false;
 var servo;
@@ -123,6 +123,14 @@ function main() {
 			if ('servoMin' in data){
 				console.log("\nnew min servo range:" + parameters.servoMin)
 				parameters.servoMin = data.servoMin;
+			}
+			if ('motorMax' in data){
+				console.log("\nnew max motor speed: "+ parameters.motorMaxSpeed)
+				parameters.motorMaxSpeed = data.motorMax;
+			}
+			if ('motorMin' in data){
+				console.log("\nnew min motor speed: "+ parameters.motorMinSpeed)
+				parameters.motorMinSpeed = data.motorMin;
 			}
 	 
 	  });
@@ -326,8 +334,12 @@ function setArduino(sm) {
 			}
 	};
 	if(motorCreated){
-	
-		motor.start(mapValue(sm, 0, 1, motorMin, motorMax));
+		if (reverse){
+			motor.reverse(mapValue(sm, 0, 1, parameters.motorMinSpeed, parameters.motorMaxSpeed));
+		}
+		else {
+			motor.forward(mapValue(sm, 0, 1, parameters.motorMinSpeed, parameters.motorMaxSpeed));
+			}
 	};
 	if(ledCreated){
 		n = mapValue(sm, 0, 1, 0, 255)

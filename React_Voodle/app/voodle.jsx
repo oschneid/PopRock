@@ -11,7 +11,7 @@ var Voodle = React.createClass({
 		return (
 			<div id = "canvas">
 			<svg id = "circleContainer">
-				<circle cx={window.innerWidth/2} cy={window.innerHeight/2} r={radius} fill="#00FF00" />
+				<circle cx={window.innerWidth/2} cy={window.innerHeight/2} r={radius} fill="#AC0" />
 			</svg>
 			<Settings 	amp={(this.props.amp).toString().substring(0,5)} 
 						pitch={(this.props.pitch).toString().substring(0,5)} 
@@ -20,7 +20,9 @@ var Voodle = React.createClass({
 						scaleFactor={this.props.scaleFactor}
 						smoothing={this.props.smoothing}
 						servoMax={this.props.servoMax}
-						servoMin={this.props.servoMin} />
+						servoMin={this.props.servoMin}
+						motorMin={this.props.motorMin}
+						motorMax={this.props.motorMax} />
 			 
 			</div>)
 	}

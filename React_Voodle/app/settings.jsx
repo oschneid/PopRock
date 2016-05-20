@@ -11,7 +11,12 @@ var Settings = React.createClass({
 	},
 
 	getInitialState: function(){
-		return{recording:false, smoothing:this.props.smoothing}
+		return{	recording:false, 
+				smoothing:this.props.smoothing,
+				servoMax:this.props.servoMax,
+				servoMin:this.props.servoMin, 
+				motorMax:this.props.motorMax,
+				motorMin:this.props.motorMin}
 	},
 	startRecording: function(){
 		if (this.state.recording == false){
@@ -44,12 +49,12 @@ var Settings = React.createClass({
 				<div id = "edit">
 				<span id="title">Settings</span>
 				<p />
-					{stringify(this.props.amp_gain)} <b>pitch bias</b> <Slider inputValue={0.5}
+					{stringifyFloat(this.props.amp_gain)} <b>pitch bias</b> <Slider inputValue={0.5}
 							minValue={0}
 							maxValue={1}
 							name="ap_weight"
 							callback={this.onChildChange}
-							stepValue={0.05}/><b> amp bias </b>{stringify(1.0-this.props.amp_gain)}
+							stepValue={0.05}/><b> amp bias </b>{stringifyFloat(1.0-this.props.amp_gain)}
 							
 					<p />
 					<b>Scale factor:</b>{this.props.scaleFactor} <Slider inputValue={this.props.scaleFactor}
@@ -59,7 +64,7 @@ var Settings = React.createClass({
 							stepValue={1}
 							callback={this.onChildChange} />
 					<p />
-					<b>Smoothing:</b>{stringify(this.state.smoothing)} 
+					<b>Smoothing:</b>{stringifyFloat(this.state.smoothing)} 
 					<Slider inputValue={this.state.smoothing}
 							minValue={0}
 							maxValue={1}
@@ -67,7 +72,7 @@ var Settings = React.createClass({
 							stepValue={0.05}
 							callback={this.onChildChange} />
 					<p />
-					
+					<button type="button" id="button" onClick={this.reverse}><b>Reverse</b></button>
 				</div>
 				<p />
 				<div id="edit">
@@ -80,17 +85,16 @@ var Settings = React.createClass({
 				<p />
 				<div id="edit">
 					<span id='title'>Servo settings</span><p />
-					<button type="button" id="button" onClick={this.reverse}><b>Reverse</b></button>
-					<p />
-					<b>Max servo range: {this.props.servoMax}</b>
-					<Slider inputValue={this.props.servoMax}
+					
+					<b>Max servo range: {this.state.servoMax}</b>
+					<Slider inputValue={this.state.servoMax}
 							minValue={0}
 							maxValue={360}
 							name="servoMax"
 							stepValue={1} />
 					<p />
-					<b>Min. servo range: {this.props.servoMin}</b>
-					<Slider inputValue={this.props.servoMin}
+					<b>Min. servo range: {this.state.servoMin}</b>
+					<Slider inputValue={this.state.servoMin}
 							minValue={0}
 							maxValue={360}
 							name="servoMin"
@@ -100,8 +104,21 @@ var Settings = React.createClass({
 				<p />
 				<div id="edit">
 					<span id='title'>Motor settings</span><p />
-					<button type="button" id="button" onClick={this.reverse}><b>Reverse (unimplemented)</b></button>< p/>
-					To-do: implement motor max/min range.
+					<b>Min. motor speed: {this.state.motorMin}</b> 
+					<Slider inputValue={this.state.motorMin}
+							minValue={0}
+							maxValue={255}
+							name="motorMin"
+							stepValue={1}
+							callback={this.onChildChange} />
+					<p />
+					<b>Max motor speed: {this.state.motorMax}</b> 
+					<Slider inputValue={this.state.motorMax}
+							minValue={0}
+							maxValue={255}
+							name="motorMax"
+							stepValue={1}
+							callback={this.onChildChange} />
 				</div>
 			</div>
 			</div>
@@ -111,7 +128,7 @@ var Settings = React.createClass({
 })
 
 
-function stringify(n){
+function stringifyFloat(n){
 	if (n==0){
 		return "0.00"
 	}

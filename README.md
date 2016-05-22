@@ -32,7 +32,9 @@ Vocal prototyping for physical user interfaces.
 		'cflags!': [ "-fno-exceptions-lrt -lasound -ljack -lpthread -fPIC" ],
 		'cflags_cc!': [ "-fno-exceptions -lrt -lasound -ljack -lpthread -fPIC"],
 		'cflags_cc': [ "-std=c++0x -lrt -lasound -ljack -lpthread -fPIC" ]
-		}```
+		}
+		```
+
 		* In the `node-core-audio` folder run `node-gyp rebuild.
 
 

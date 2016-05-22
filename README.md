@@ -35,7 +35,7 @@ Vocal prototyping for physical user interfaces.
 		}
 		```
 
-		* In the `node-core-audio` folder run `node-gyp rebuild.
+		* In the `node-core-audio` folder run `node-gyp rebuild`.
 
 
 ###Running React Voodle:

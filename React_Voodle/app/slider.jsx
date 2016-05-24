@@ -8,7 +8,6 @@ var Slider = React.createClass({
 	  this.setState({value: event.target.value});
 	  var keyname = {}
 	  keyname[this.props.name] = event.target.value
-	  // console.log(keyname)
 	  this.props.callback(keyname);
 	},
 	render: function() {

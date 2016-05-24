@@ -296,13 +296,17 @@ function broadcastValues() {
 			ampGain = 1;
 		};
 
-		iohandle.broadcastAmp(ampGain);
-		iohandle.broadcastPitch(pitchGain);
-		iohandle.broadcastMix(smoothOut);
-
-		iohandle.broadcastAmpGain(parameters.gain_for_amp)
-		iohandle.broadcastPitchGain(parameters.gain_for_pitch) 
-		iohandle.broadcastScale(parameters.scaleFactor);
+		iohandle.broadcast({
+				amp:ampGain,
+				pitch:pitchGain,
+				mix:smoothOut,
+			}
+		);
+		// iohandle.broadcastPitch(pitchGain);
+		// iohandle.broadcastMix(smoothOut);
+		// iohandle.broadcastAmpGain(parameters.gain_for_amp)
+		// iohandle.broadcastPitchGain(parameters.gain_for_pitch) 
+		// iohandle.broadcastScale(parameters.scaleFactor);
 		
 }
 

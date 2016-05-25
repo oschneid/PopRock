@@ -1,3 +1,6 @@
 React_Voodle/node_modules/
 React_Voodle/package.json
 *npm-debug.log
+React_Voodle/recordings/*.csv
+React_Voodle/recordings/*.wav
+React_Voodle/recordings/*.json

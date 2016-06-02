@@ -25,14 +25,17 @@ var parameters = {
 	servoMin: 20,
 	motorMinSpeed:50,
 	motorMaxSpeed:255,
+	framerate:34,
+	framesPerBuffer:400,
+	sampleRate:40000
 }
 
 // David
 
 var led;
 var ledCreated = false;
-var servoMode = false;
-var motorMode = true;
+var servoMode = true;
+var motorMode = false;
 var ledMode = false;
 
 var motor;
@@ -91,8 +94,8 @@ function main() {
 		engine.setOptions({
 		outputChannels:1,
 		inputChannels:1,
-		framesPerBuffer:400,
-		sampleRate:40000
+		framesPerBuffer:parameters.framesPerBuffer,
+		sampleRate:parameters.sampleRate
 	});
 
 	engine.addAudioCallback( processAudio );
@@ -148,8 +151,9 @@ function main() {
 	board.on("ready", function() {
 
 	if (servoMode){
+			console.log('servo created!')
 			servo = new five.Servo({
-		    pin: 6,
+		    pin: 10,
 		    startAt: 90
 		  });
 
@@ -246,10 +250,10 @@ function processAudio( inputBuffer ) {
 	var now = new Date()
 	handleRecording(inputBuffer[0])
 	//vars `now` and `last` ensures it runs at 30fps
-	if ((now-last)>34){	
+	if ((now-last)>parameters.framerate){	
 
 		ampRaw = Math.abs(Math.max.apply(Math, inputBuffer[0]));
-
+		
 		//start of pitch analysis///////////////////////////////////////////		
 		pitch = detectPitchAMDF(inputBuffer[0]);
 		if (pitch==null){

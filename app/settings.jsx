@@ -19,6 +19,9 @@ var Settings = React.createClass({
 			motorMax: 255,
 			motorMin: 50,
 			socket:this.props.socket,
+			recordingStatus:"",
+			startTime: new Date(),
+			maxRecLength: 4000
 		}
 
 	},
@@ -26,21 +29,39 @@ var Settings = React.createClass({
 		if (this.state.recording == false){
 			this.props.emit("startRec")
 			console.log("startRecording in jsx called!")
+			this.setState({	recording:true,
+						startTime: new Date(),
+						recordingStatus: "recording"})
 		}
-		this.setState({recording:true})
+		
 	},
 	stopRecording: function(){
 		if (this.state.recording == true){
+
+			this.setState({recordingStatus:"",
+							recording:false})
 			this.props.emit("stopRec")
 			console.log("stop rec emit called!")
 		}
-		this.setState({recording:false})
+		this.setState({recordingStatus:"",
+							recording:false})
+		
+		
 	},
 	reverse: function(){
 			this.props.emit("reverse")
 			console.log("reverse called!")
 	},
 	render: function(){
+		var countdown = "0";
+		if (this.state.recording){
+			// console.log("rec state",this.state.recording)
+			countdown = new Date() -this.state.startTime
+			if (countdown > this.state.maxRecLength){
+				// console.log("in countdown IF")
+				// this.stopRecording();
+			};
+		}
 		return (
 			<div>
 			<div id ="leftPanel">
@@ -81,6 +102,9 @@ var Settings = React.createClass({
 					<span id='title'>Recording</span><p />
 					<button type="button" id="button" onClick={this.startRecording}><b>Record</b></button>  
 					<button type="button" id="button" onClick={this.stopRecording}><b>Stop</b></button>
+					<br />
+					{this.state.recordingStatus}<br />
+					{countdown}ms
 				</div>
 			</div>
 			<div id="rightPanel">

@@ -21,11 +21,11 @@ var parameters = {
 	gain_for_amp: 0.4,
 	gain_for_pitch: 0.6,
 	scaleFactor: 3,
-	servoMax: 85,
-	servoMin: 20,
+	servoMax: 75,
+	servoMin: 10,
 	motorMinSpeed:50,
 	motorMaxSpeed:255,
-	framerate:34,
+	frameRate:34,
 	framesPerBuffer:400,
 	sampleRate:40000
 }
@@ -66,12 +66,12 @@ var name;
 // Main
 function main() {
 	//set up server
-	server.listen(3000);
+	server.listen(2000);
 
-	app.use(express.static(__dirname + '/dist'));
+	app.use(express.static(__dirname + '/js'));
 
 	app.get('/', function (req, res) {
-	  res.sendfile(__dirname + '/index.html');
+	  res.sendfile(__dirname + '/voodle-index.html');
 	});
 
 	app.use(express.static(__dirname + '/css'));
@@ -204,7 +204,7 @@ function writeToAudioBufferFile(name, buffer) {
 	buffer.forEach(function(f){
 		out = out +'0,' + f + '\n'
 	})
-	fs.appendFile("./recordings/"+name+"_recording.csv", out, function(err){
+	fs.appendFile("C:\\Users\\David\\Documents\\CuddleBitV2\\recordings\\"+name+"_recording.csv", out, function(err){
 		if (err){
 			return console.log(err);
 		}
@@ -225,7 +225,7 @@ function stopRecording(){
 }
 
 function writeParams(){
-	fs.appendFile("./recordings/" + name + "_parameters.json", JSON.stringify(parameters), function(err){
+	fs.appendFile("C:\\Users\\David\\Documents\\CuddleBitV2\\recordings\\" + name + "_parameters.json", JSON.stringify(parameters), function(err){
 	if (err){
 		return console.log(err);
 	}
@@ -250,7 +250,7 @@ function processAudio( inputBuffer ) {
 	var now = new Date()
 	handleRecording(inputBuffer[0])
 	//vars `now` and `last` ensures it runs at 30fps
-	if ((now-last)>parameters.framerate){	
+	if ((now-last)>parameters.frameRate){	
 
 		ampRaw = Math.abs(Math.max.apply(Math, inputBuffer[0]));
 		
@@ -335,10 +335,10 @@ function setArduino(sm) {
 		if (reverse){
 		//maps the audio input to the servo value range, and calculates the difference
 		//so that it moves upwards with increased amplitude.
-			servo.to(mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
+			servo.to(parameters.servoMax - mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
 		}
 		else {
-				servo.to(parameters.servoMax - mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
+				servo.to(mapValue(sm, 0, 1, parameters.servoMin, parameters.servoMax));
 			}
 	};
 	if(motorCreated){

@@ -3,14 +3,14 @@ var node_modules = path.resolve(__dirname, 'node_modules');
 var pathToReact = path.resolve(node_modules, 'react/dist/react.min.js');
 
 config = {
-    entry: path.resolve(__dirname, 'app/main.js'),
+    entry: path.resolve(__dirname, 'app/voodle-main.js'),
     resolve: {
         alias: {
           'react': pathToReact
         }
     },
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'backend/js/'),
         filename: 'bundle.js',
     },
     module: {

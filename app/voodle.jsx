@@ -19,7 +19,7 @@ var Voodle = React.createClass({
 		this.state.socket.emit(st,msg)
 	},
 	componentDidMount: function() {
-		var socket = io.connect("http://localhost:3000");
+		var socket = io.connect("http://localhost:2000");
 
 		socket.on("broadcast",function(msg){
 			this.setState(msg);
@@ -39,9 +39,7 @@ var Voodle = React.createClass({
 			<div>
 			<div id = "canvas">
 
-				<svg id = "circleContainer">
-					<circle cx={window.innerWidth/2} cy={window.innerHeight/2} r={radius} fill="#00FF00" />
-				</svg>
+				
 				
 			</div>
 			<div id ="overlay">
